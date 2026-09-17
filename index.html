@@ -608,6 +608,20 @@
     }
   }
 
+  function resetForm() {
+    document.getElementById('ticker').value = '';
+    document.getElementById('roe').value = '';
+    document.getElementById('der').value = '';
+    document.getElementById('cfo').value = '';
+    document.getElementById('netIncome').value = '';
+    document.getElementById('per').value = '';
+    document.getElementById('pbv').value = '';
+    document.getElementById('price3m').value = '';
+    const checked = document.querySelector('input[name="incomeUp"]:checked');
+    if (checked) checked.checked = false;
+    document.getElementById('ticker').focus();
+  }
+
   document.getElementById('analyzeBtn').addEventListener('click', async () => {
     const ticker = document.getElementById('ticker').value.trim().toUpperCase();
     const roe = parseFloat(document.getElementById('roe').value);
@@ -642,6 +656,8 @@
         console.error('Gagal menyimpan ke Firestore:', e);
       }
     }
+
+    resetForm();
   });
 
   loadHistory();
