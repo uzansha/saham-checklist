@@ -1,0 +1,651 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Checklist Analisa Saham</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0F1419;
+    --panel: #171D26;
+    --panel-raised: #1D2530;
+    --border: #2A323D;
+    --text: #E8E6E1;
+    --text-dim: #8B94A3;
+    --gold: #D4A017;
+    --gold-dim: #8A6C1F;
+    --green: #4CAF7D;
+    --red: #D66A6A;
+    --font-ui: 'Space Grotesk', sans-serif;
+    --font-mono: 'IBM Plex Mono', monospace;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--font-ui);
+    line-height: 1.5;
+    min-height: 100vh;
+    padding: 32px 16px 80px;
+  }
+
+  .wrap {
+    max-width: 760px;
+    margin: 0 auto;
+  }
+
+  header {
+    margin-bottom: 32px;
+    padding-bottom: 20px;
+    border-bottom: 1px solid var(--border);
+  }
+
+  header h1 {
+    font-size: 1.5rem;
+    font-weight: 600;
+    letter-spacing: -0.01em;
+  }
+
+  header p {
+    color: var(--text-dim);
+    font-size: 0.9rem;
+    margin-top: 4px;
+  }
+
+  .status-bar {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-family: var(--font-mono);
+    font-size: 0.78rem;
+    color: var(--text-dim);
+    margin-top: 12px;
+  }
+
+  .status-dot {
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: var(--red);
+  }
+
+  .status-dot.ok { background: var(--green); }
+
+  .ticker-row {
+    display: flex;
+    gap: 12px;
+    margin-bottom: 24px;
+  }
+
+  .ticker-row input {
+    flex: 1;
+    text-transform: uppercase;
+  }
+
+  section.group {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    padding: 20px;
+    margin-bottom: 16px;
+  }
+
+  .group-title {
+    font-size: 0.72rem;
+    font-weight: 600;
+    color: var(--gold);
+    letter-spacing: 0.03em;
+    margin-bottom: 4px;
+  }
+
+  .group-desc {
+    font-size: 0.82rem;
+    color: var(--text-dim);
+    margin-bottom: 16px;
+  }
+
+  .field {
+    margin-bottom: 14px;
+  }
+
+  .field:last-child { margin-bottom: 0; }
+
+  .field label {
+    display: block;
+    font-size: 0.85rem;
+    margin-bottom: 6px;
+    color: var(--text);
+  }
+
+  .field .hint {
+    font-size: 0.75rem;
+    color: var(--text-dim);
+    margin-top: 4px;
+  }
+
+  input, select {
+    width: 100%;
+    background: var(--panel-raised);
+    border: 1px solid var(--border);
+    border-radius: 3px;
+    padding: 10px 12px;
+    color: var(--text);
+    font-family: var(--font-mono);
+    font-size: 0.95rem;
+  }
+
+  input:focus, select:focus {
+    outline: none;
+    border-color: var(--gold-dim);
+  }
+
+  input::placeholder { color: #4A5563; }
+
+  .radio-group {
+    display: flex;
+    gap: 8px;
+  }
+
+  .radio-group label {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 10px;
+    background: var(--panel-raised);
+    border: 1px solid var(--border);
+    border-radius: 3px;
+    font-size: 0.85rem;
+    cursor: pointer;
+    font-family: var(--font-mono);
+  }
+
+  .radio-group input[type="radio"] {
+    display: none;
+    width: auto;
+  }
+
+  .radio-group input[type="radio"]:checked + span {
+    color: var(--gold);
+  }
+
+  .radio-group label:has(input:checked) {
+    border-color: var(--gold-dim);
+    background: rgba(212, 160, 23, 0.08);
+  }
+
+  button.primary {
+    width: 100%;
+    padding: 14px;
+    background: var(--gold);
+    color: #14110A;
+    border: none;
+    border-radius: 3px;
+    font-family: var(--font-ui);
+    font-weight: 600;
+    font-size: 0.95rem;
+    cursor: pointer;
+    margin-top: 8px;
+  }
+
+  button.primary:hover { background: #E0AC24; }
+  button.primary:disabled { background: var(--border); color: var(--text-dim); cursor: not-allowed; }
+
+  .result {
+    display: none;
+    margin-top: 24px;
+  }
+
+  .result.show { display: block; }
+
+  .verdict {
+    padding: 20px;
+    border-radius: 4px;
+    text-align: center;
+    margin-bottom: 16px;
+    border: 1px solid var(--border);
+  }
+
+  .verdict.pass { border-color: var(--green); background: rgba(76, 175, 125, 0.08); }
+  .verdict.fail { border-color: var(--red); background: rgba(214, 106, 106, 0.08); }
+  .verdict.mixed { border-color: var(--gold-dim); background: rgba(212, 160, 23, 0.08); }
+
+  .verdict .score {
+    font-family: var(--font-mono);
+    font-size: 2rem;
+    font-weight: 600;
+  }
+
+  .verdict .label {
+    font-size: 0.9rem;
+    color: var(--text-dim);
+    margin-top: 4px;
+  }
+
+  .criteria-list {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .criterion {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    padding: 12px 14px;
+    background: var(--panel-raised);
+    border-radius: 3px;
+    font-size: 0.85rem;
+  }
+
+  .criterion .mark {
+    font-family: var(--font-mono);
+    font-weight: 600;
+    flex-shrink: 0;
+  }
+
+  .criterion.pass .mark { color: var(--green); }
+  .criterion.fail .mark { color: var(--red); }
+
+  .criterion .body strong { display: block; margin-bottom: 2px; }
+  .criterion .body .sub { color: var(--text-dim); font-size: 0.8rem; }
+
+  .history {
+    margin-top: 40px;
+  }
+
+  .history h2 {
+    font-size: 0.95rem;
+    font-weight: 600;
+    margin-bottom: 4px;
+  }
+
+  .history .sub-desc {
+    font-size: 0.8rem;
+    color: var(--text-dim);
+    margin-bottom: 16px;
+  }
+
+  .history-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 14px 16px;
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    margin-bottom: 8px;
+  }
+
+  .history-item .ticker {
+    font-family: var(--font-mono);
+    font-weight: 600;
+    font-size: 1rem;
+  }
+
+  .history-item .date {
+    font-size: 0.75rem;
+    color: var(--text-dim);
+  }
+
+  .history-item .badge {
+    font-family: var(--font-mono);
+    font-size: 0.78rem;
+    padding: 4px 10px;
+    border-radius: 3px;
+  }
+
+  .badge.pass { background: rgba(76, 175, 125, 0.15); color: var(--green); }
+  .badge.fail { background: rgba(214, 106, 106, 0.15); color: var(--red); }
+  .badge.mixed { background: rgba(212, 160, 23, 0.15); color: var(--gold); }
+
+  .empty-state {
+    text-align: center;
+    padding: 32px 16px;
+    color: var(--text-dim);
+    font-size: 0.85rem;
+    border: 1px dashed var(--border);
+    border-radius: 4px;
+  }
+
+  .delete-btn {
+    background: none;
+    border: none;
+    color: var(--text-dim);
+    cursor: pointer;
+    font-size: 0.75rem;
+    margin-left: 12px;
+    padding: 4px 8px;
+  }
+
+  .delete-btn:hover { color: var(--red); }
+
+  .history-item-main {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .history-item-right {
+    display: flex;
+    align-items: center;
+  }
+</style>
+</head>
+<body>
+
+<div class="wrap">
+  <header>
+    <h1>Checklist Analisa Saham</h1>
+    <p>Masukkan data dari Keystats Stockbit — sistem menyimpulkan otomatis</p>
+    <div class="status-bar">
+      <div class="status-dot" id="statusDot"></div>
+      <span id="statusText">Menghubungkan ke Firebase...</span>
+    </div>
+  </header>
+
+  <div class="ticker-row">
+    <input type="text" id="ticker" placeholder="Kode saham, misal BBRI" maxlength="10">
+  </div>
+
+  <section class="group">
+    <div class="group-title">1. KESEHATAN FUNDAMENTAL</div>
+    <div class="group-desc">Section "Management Effectiveness", "Solvency", dan "Cash Flow Statement" di Keystats</div>
+
+    <div class="field">
+      <label>ROE — Return on Equity (TTM), dalam %</label>
+      <input type="number" step="0.01" id="roe" placeholder="misal 6.75">
+      <div class="hint">Kriteria bagus: di atas 15%</div>
+    </div>
+
+    <div class="field">
+      <label>DER — Debt to Equity Ratio (Quarter)</label>
+      <input type="number" step="0.01" id="der" placeholder="misal 0.45">
+      <div class="hint">Kriteria aman: di bawah 1</div>
+    </div>
+
+    <div class="field">
+      <label>Cash From Operations (TTM), dalam Miliar Rp</label>
+      <input type="number" step="0.01" id="cfo" placeholder="misal 12920">
+    </div>
+
+    <div class="field">
+      <label>Net Income (TTM), dalam Miliar Rp</label>
+      <input type="number" step="0.01" id="netIncome" placeholder="misal 2012">
+      <div class="hint">Kriteria bagus: CFO ≥ Net Income</div>
+    </div>
+  </section>
+
+  <section class="group">
+    <div class="group-title">2. VALUASI</div>
+    <div class="group-desc">Section "Current Valuation" di Keystats</div>
+
+    <div class="field">
+      <label>PER — Current PE Ratio (TTM)</label>
+      <input type="number" step="0.01" id="per" placeholder="misal 37.29">
+      <div class="hint">Kriteria wajar: mendekati atau di bawah rata-rata pasar (~15–20x)</div>
+    </div>
+
+    <div class="field">
+      <label>PBV — Current Price to Book Value</label>
+      <input type="number" step="0.01" id="pbv" placeholder="misal 2.52">
+      <div class="hint">Kriteria wajar: selaras dengan ROE (PBV tinggi butuh ROE tinggi juga)</div>
+    </div>
+  </section>
+
+  <section class="group">
+    <div class="group-title">3. PRICE ACTION</div>
+    <div class="group-desc">Section "Price Performance" dan tabel Net Income kuartalan di Keystats</div>
+
+    <div class="field">
+      <label>Kenaikan harga 3 bulan terakhir (3M), dalam %</label>
+      <input type="number" step="0.01" id="price3m" placeholder="misal 16.76 (kosongkan jika turun / tidak relevan)">
+    </div>
+
+    <div class="field">
+      <label>Apakah Net Income kuartal terakhir membaik dibanding kuartal sebelumnya?</label>
+      <div class="radio-group">
+        <label><input type="radio" name="incomeUp" value="yes"><span>Ya, membaik</span></label>
+        <label><input type="radio" name="incomeUp" value="no"><span>Tidak / stagnan</span></label>
+      </div>
+    </div>
+  </section>
+
+  <button class="primary" id="analyzeBtn">Simpan &amp; Analisa</button>
+
+  <div class="result" id="result">
+    <div class="verdict" id="verdict">
+      <div class="score" id="verdictScore">0/4</div>
+      <div class="label" id="verdictLabel">—</div>
+    </div>
+    <div class="criteria-list" id="criteriaList"></div>
+  </div>
+
+  <div class="history">
+    <h2>Riwayat Analisa</h2>
+    <div class="sub-desc">Tersimpan di Firestore — bisa dibuka lagi kapan saja</div>
+    <div id="historyList">
+      <div class="empty-state">Belum ada riwayat. Analisa saham pertamamu di atas.</div>
+    </div>
+  </div>
+</div>
+
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+  import {
+    getFirestore, collection, addDoc, getDocs,
+    query, orderBy, deleteDoc, doc, serverTimestamp
+  } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+  import { firebaseConfig } from "./firebase-config.js";
+
+  const statusDot = document.getElementById('statusDot');
+  const statusText = document.getElementById('statusText');
+
+  let db;
+  try {
+    const app = initializeApp(firebaseConfig);
+    db = getFirestore(app);
+    statusDot.classList.add('ok');
+    statusText.textContent = 'Terhubung ke Firebase';
+  } catch (e) {
+    statusText.textContent = 'Gagal terhubung — cek firebase-config.js';
+    console.error(e);
+  }
+
+  const COLLECTION = 'analisa_saham';
+
+  function evaluate(data) {
+    const criteria = [];
+
+    // 1. ROE
+    const roePass = data.roe > 15;
+    criteria.push({
+      pass: roePass,
+      title: `ROE ${data.roe}%`,
+      sub: roePass ? 'Di atas 15% — profitabilitas sehat' : 'Di bawah 15% — profitabilitas lemah'
+    });
+
+    // 2. DER
+    const derPass = data.der < 1;
+    criteria.push({
+      pass: derPass,
+      title: `DER ${data.der}`,
+      sub: derPass ? 'Di bawah 1 — struktur utang aman' : 'Di atas 1 — leverage tinggi'
+    });
+
+    // 3. CFO vs Net Income
+    const cfoPass = data.cfo >= data.netIncome;
+    criteria.push({
+      pass: cfoPass,
+      title: `CFO ${data.cfo} vs Net Income ${data.netIncome}`,
+      sub: cfoPass ? 'CFO ≥ Net Income — kualitas laba baik' : 'CFO < Net Income — laba mungkin di atas kertas'
+    });
+
+    // 4. PER
+    const perPass = data.per <= 20;
+    criteria.push({
+      pass: perPass,
+      title: `PER ${data.per}x`,
+      sub: perPass ? 'Mendekati/di bawah rata-rata pasar — harga wajar' : 'Di atas rata-rata pasar — cenderung mahal'
+    });
+
+    // 5. PBV vs ROE
+    const pbvRoePass = !(data.pbv > 2 && data.roe < 15);
+    criteria.push({
+      pass: pbvRoePass,
+      title: `PBV ${data.pbv} vs ROE ${data.roe}%`,
+      sub: pbvRoePass ? 'Valuasi selaras dengan return' : 'PBV tinggi tapi ROE rendah — kemungkinan kemahalan'
+    });
+
+    // 6. Price action
+    const priceUp = data.price3m > 0;
+    const incomeUp = data.incomeUp === 'yes';
+    const priceActionPass = !priceUp || (priceUp && incomeUp);
+    criteria.push({
+      pass: priceActionPass,
+      title: priceUp ? `Harga naik ${data.price3m}% (3M)` : 'Harga tidak naik signifikan (3M)',
+      sub: priceActionPass
+        ? (priceUp ? 'Didukung perbaikan laba kuartal terakhir' : 'Tidak ada kenaikan harga yang perlu diverifikasi')
+        : 'Harga naik tapi laba kuartal terakhir TIDAK membaik — indikasi momentum tanpa dasar'
+    });
+
+    const passCount = criteria.filter(c => c.pass).length;
+    return { criteria, passCount, total: criteria.length };
+  }
+
+  function renderResult(evalResult) {
+    const { criteria, passCount, total } = evalResult;
+    const verdictEl = document.getElementById('verdict');
+    const scoreEl = document.getElementById('verdictScore');
+    const labelEl = document.getElementById('verdictLabel');
+    const listEl = document.getElementById('criteriaList');
+
+    scoreEl.textContent = `${passCount}/${total}`;
+
+    verdictEl.classList.remove('pass', 'fail', 'mixed');
+    if (passCount === total) {
+      verdictEl.classList.add('pass');
+      labelEl.textContent = 'Lolos semua kriteria — layak dipertimbangkan';
+    } else if (passCount <= total / 2) {
+      verdictEl.classList.add('fail');
+      labelEl.textContent = 'Banyak kriteria gagal — perlu riset tambahan sebelum masuk';
+    } else {
+      verdictEl.classList.add('mixed');
+      labelEl.textContent = 'Hasil campuran — tinjau kriteria yang gagal';
+    }
+
+    listEl.innerHTML = criteria.map(c => `
+      <div class="criterion ${c.pass ? 'pass' : 'fail'}">
+        <span class="mark">${c.pass ? '✓' : '✗'}</span>
+        <div class="body">
+          <strong>${c.title}</strong>
+          <div class="sub">${c.sub}</div>
+        </div>
+      </div>
+    `).join('');
+
+    document.getElementById('result').classList.add('show');
+  }
+
+  function verdictClass(passCount, total) {
+    if (passCount === total) return 'pass';
+    if (passCount <= total / 2) return 'fail';
+    return 'mixed';
+  }
+
+  function verdictText(passCount, total) {
+    if (passCount === total) return 'Layak dipertimbangkan';
+    if (passCount <= total / 2) return 'Perlu riset tambahan';
+    return 'Hasil campuran';
+  }
+
+  async function loadHistory() {
+    const listEl = document.getElementById('historyList');
+    if (!db) return;
+    try {
+      const q = query(collection(db, COLLECTION), orderBy('createdAt', 'desc'));
+      const snap = await getDocs(q);
+      if (snap.empty) {
+        listEl.innerHTML = '<div class="empty-state">Belum ada riwayat. Analisa saham pertamamu di atas.</div>';
+        return;
+      }
+      listEl.innerHTML = '';
+      snap.forEach(docSnap => {
+        const d = docSnap.data();
+        const dateStr = d.createdAt?.toDate
+          ? d.createdAt.toDate().toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' })
+          : '';
+        const item = document.createElement('div');
+        item.className = 'history-item';
+        item.innerHTML = `
+          <div class="history-item-main">
+            <span class="ticker">${d.ticker}</span>
+            <span class="date">${dateStr}</span>
+          </div>
+          <div class="history-item-right">
+            <span class="badge ${verdictClass(d.passCount, d.total)}">${d.passCount}/${d.total} — ${verdictText(d.passCount, d.total)}</span>
+            <button class="delete-btn" data-id="${docSnap.id}">Hapus</button>
+          </div>
+        `;
+        listEl.appendChild(item);
+      });
+
+      listEl.querySelectorAll('.delete-btn').forEach(btn => {
+        btn.addEventListener('click', async (e) => {
+          const id = e.target.dataset.id;
+          await deleteDoc(doc(db, COLLECTION, id));
+          loadHistory();
+        });
+      });
+    } catch (e) {
+      console.error(e);
+      listEl.innerHTML = '<div class="empty-state">Gagal memuat riwayat. Cek koneksi Firebase.</div>';
+    }
+  }
+
+  document.getElementById('analyzeBtn').addEventListener('click', async () => {
+    const ticker = document.getElementById('ticker').value.trim().toUpperCase();
+    const roe = parseFloat(document.getElementById('roe').value);
+    const der = parseFloat(document.getElementById('der').value);
+    const cfo = parseFloat(document.getElementById('cfo').value);
+    const netIncome = parseFloat(document.getElementById('netIncome').value);
+    const per = parseFloat(document.getElementById('per').value);
+    const pbv = parseFloat(document.getElementById('pbv').value);
+    const price3m = parseFloat(document.getElementById('price3m').value) || 0;
+    const incomeUpEl = document.querySelector('input[name="incomeUp"]:checked');
+    const incomeUp = incomeUpEl ? incomeUpEl.value : 'no';
+
+    if (!ticker || [roe, der, cfo, netIncome, per, pbv].some(v => isNaN(v))) {
+      alert('Isi kode saham dan semua angka wajib terlebih dahulu.');
+      return;
+    }
+
+    const data = { ticker, roe, der, cfo, netIncome, per, pbv, price3m, incomeUp };
+    const evalResult = evaluate(data);
+    renderResult(evalResult);
+
+    if (db) {
+      try {
+        await addDoc(collection(db, COLLECTION), {
+          ...data,
+          passCount: evalResult.passCount,
+          total: evalResult.total,
+          createdAt: serverTimestamp()
+        });
+        loadHistory();
+      } catch (e) {
+        console.error('Gagal menyimpan ke Firestore:', e);
+      }
+    }
+  });
+
+  loadHistory();
+</script>
+
+</body>
+</html>
